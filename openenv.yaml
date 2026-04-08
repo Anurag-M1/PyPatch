@@ -13,21 +13,27 @@ tasks:
     name: Fix Factorial Function
     difficulty: easy
     max_steps: 5
+    score: 0.32
     score_range: [0.0, 1.0]
+    grader: python:tasks.grade_task
     description: Fix syntax errors in a recursive factorial function.
 
   - id: task_medium_second_largest
     name: Fix Second Largest Element
     difficulty: medium
     max_steps: 5
+    score: 0.33
     score_range: [0.0, 1.0]
+    grader: python:tasks.grade_task
     description: Fix the logic error that returns the largest instead of second largest element.
 
   - id: task_hard_binary_search
     name: Fix Binary Search Algorithm
     difficulty: hard
     max_steps: 5
+    score: 0.35
     score_range: [0.0, 1.0]
+    grader: python:tasks.grade_task
     description: Fix four distinct algorithmic bugs in a binary search implementation.
 
 observation_space:

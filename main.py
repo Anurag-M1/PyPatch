@@ -191,6 +191,8 @@ async def list_tasks():
                 name=t["name"],
                 difficulty=t["difficulty"],
                 description=t["description"],
+                grader=t["grader"],
+                score=t["score"],
             )
             for t in TASKS
         ]

@@ -30,6 +30,8 @@ TASKS: List[Dict[str, Any]] = [
             "Hint: Look carefully at the function signature line and the comparison "
             "operator inside the if statement."
         ),
+        "grader": "python:tasks.grade_task",
+        "score": 0.32,
         "function_name": "factorial",
         "test_cases": [
             {"args": (0,), "expected": 1},
@@ -62,6 +64,8 @@ TASKS: List[Dict[str, Any]] = [
             "Hint: The function sorts and gets the last element. "
             "Think about which index gives the second largest."
         ),
+        "grader": "python:tasks.grade_task",
+        "score": 0.33,
         "function_name": "second_largest",
         "test_cases": [
             {"args": ([1, 2, 3],), "expected": 2},
@@ -107,6 +111,8 @@ TASKS: List[Dict[str, Any]] = [
             "Hint: There are 4 bugs — check the initial right boundary, the while condition, "
             "and both pointer update lines."
         ),
+        "grader": "python:tasks.grade_task",
+        "score": 0.35,
         "function_name": "binary_search",
         "test_cases": [
             {"args": ([1, 3, 5, 7, 9], 5), "expected": 2},

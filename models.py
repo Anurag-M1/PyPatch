@@ -46,3 +46,5 @@ class TaskInfo(BaseModel):
     name: str
     difficulty: str
     description: str
+    grader: str
+    score: float
