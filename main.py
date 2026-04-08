@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from models import (
-    BugFixAction,
-    BugFixObservation,
+    PyPatchAction,
+    PyPatchObservation,
     ResetRequest,
     ResetResponse,
     StateResponse,
@@ -49,8 +49,8 @@ _state = {
 }
 
 
-def _make_observation(task: dict, step_count: int) -> BugFixObservation:
-    return BugFixObservation(
+def _make_observation(task: dict, step_count: int) -> PyPatchObservation:
+    return PyPatchObservation(
         task_id=task["id"],
         task_name=task["name"],
         difficulty=task["difficulty"],
@@ -155,7 +155,7 @@ async def root():
   <div class="ep"><span class="method get">GET</span><span class="ep-path">/docs</span><span class="ep-desc">Swagger UI</span></div>
 </div>
 
-<footer>Built by Anurag Singh</footer>
+<footer>PyPatch · OpenEnv Round 1 · Built by Anurag Kumar Singh</footer>
 </body>
 </html>"""
     return HTMLResponse(content=html, status_code=200)
@@ -210,7 +210,7 @@ async def reset(request: Optional[ResetRequest] = None):
 
 
 @app.post("/step", response_model=StepResponse)
-async def step(action: BugFixAction):
+async def step(action: PyPatchAction):
     """
     Submit a fixed version of the buggy code.
     Returns reward (0.0–1.0) based on test cases passed.

@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, Any, Dict
 
 
-class BugFixObservation(BaseModel):
+class PyPatchObservation(BaseModel):
     task_id: str
     task_name: str
     difficulty: str
@@ -12,7 +12,7 @@ class BugFixObservation(BaseModel):
     step_count: int
 
 
-class BugFixAction(BaseModel):
+class PyPatchAction(BaseModel):
     fixed_code: str
 
 
@@ -21,13 +21,13 @@ class ResetRequest(BaseModel):
 
 
 class ResetResponse(BaseModel):
-    observation: BugFixObservation
+    observation: PyPatchObservation
     done: bool
     reward: float
 
 
 class StepResponse(BaseModel):
-    observation: Optional[BugFixObservation]
+    observation: Optional[PyPatchObservation]
     reward: float
     done: bool
     info: Dict[str, Any] = {}

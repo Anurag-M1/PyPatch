@@ -1,5 +1,5 @@
 """
-BugFixBench — Baseline Inference Script
+PyPatch — Baseline Inference Script
 ========================================
 Runs an LLM agent through all 3 tasks (easy → medium → hard).
 Emits structured [START] / [STEP] / [END] logs as required by OpenEnv evaluation.
@@ -8,7 +8,7 @@ Environment variables:
   API_BASE_URL  — LLM API endpoint (e.g. https://api.openai.com/v1)
   MODEL_NAME    — model identifier (e.g. gpt-4o-mini)
   HF_TOKEN      — API key / Hugging Face token
-  ENV_URL       — BugFixBench server URL (default: http://localhost:7860)
+  ENV_URL       — PyPatch server URL (default: http://localhost:7860)
 """
 
 import asyncio
@@ -31,7 +31,7 @@ ENV_URL: str = os.environ.get("ENV_URL", "http://localhost:7860")
 
 API_KEY: str = HF_TOKEN or ""
 
-BENCHMARK = "bugfixbench"
+BENCHMARK = "pypatch"
 MAX_STEPS = 5
 SUCCESS_SCORE_THRESHOLD = 0.7
 

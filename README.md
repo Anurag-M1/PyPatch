@@ -2,48 +2,51 @@
 title: PyPatch
 emoji: 🐛
 colorFrom: red
-colorTo: yellow
+colorTo: orange
 sdk: docker
 pinned: false
+license: mit
 ---
 
-# PyPatch
+# PyPatch 🐛
 
-PyPatch is a FastAPI-based reinforcement learning environment where agents repair buggy Python code and receive partial reward based on hidden test-case performance.
+**An OpenEnv-compliant RL environment for AI-powered Python code debugging.**
 
-Built by Anurag Singh.
+PyPatch challenges AI agents to identify and fix bugs in Python code across three difficulty levels. Reward is proportional to the fraction of hidden test cases the agent's fix passes — giving rich, continuous feedback for reinforcement learning.
 
-<img width="1895" height="985" alt="Screenshot 2026-04-08 at 5 38 53 PM" src="https://github.com/user-attachments/assets/b3fc1097-39f1-4aab-800e-c8ba4d15b856" />
+---
 
-## Overview
+## Environment Overview
 
-- 3 tasks across `easy`, `medium`, and `hard`
-- Up to 5 attempts per episode
-- Reward range from `0.0` to `1.0`
-- REST API for reset, step, task listing, and state inspection
-- Local validator included for pre-submission checks
+| Property | Value |
+|---|---|
+| **Tasks** | 3 (easy → medium → hard) |
+| **Max steps per task** | 5 |
+| **Reward range** | 0.0 – 1.0 |
+| **Termination** | All tests pass OR max steps reached |
+| **API** | OpenEnv-compliant REST (FastAPI) |
+
+---
 
 ## Tasks
 
-| Task | Difficulty | Goal |
-| --- | --- | --- |
-| Fix Factorial Function | Easy | Repair syntax issues in a recursive factorial function |
-| Fix Second Largest Element | Medium | Correct logic so the second-largest element is returned |
-| Fix Binary Search Algorithm | Hard | Repair multiple algorithmic bugs in binary search |
+### Task 1 — Fix Factorial Function (Easy)
+The agent receives a factorial function with **syntax errors** (missing colon, wrong assignment operator in condition).  
+**Reward:** fraction of 4 test cases passing.
 
-## API
+### Task 2 — Fix Second Largest Element (Medium)
+The agent receives a function with a **logic error** that returns the largest element instead of the second largest.  
+**Reward:** fraction of 5 test cases passing.
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/` | Landing page |
-| `GET` | `/health` | Service health check |
-| `GET` | `/tasks` | List available tasks |
-| `POST` | `/reset` | Start a new episode |
-| `POST` | `/step` | Submit a code fix |
-| `GET` | `/state` | Inspect current episode state |
+### Task 3 — Fix Binary Search Algorithm (Hard)
+The agent receives a binary search with **4 distinct algorithmic bugs**: off-by-one boundary, wrong while condition, and two incorrect pointer updates.  
+**Reward:** fraction of 7 test cases passing.
 
-### Example observation
+---
 
+## Action & Observation Spaces
+
+### Observation
 ```json
 {
   "task_id": "task_hard_binary_search",
@@ -51,57 +54,53 @@ Built by Anurag Singh.
   "difficulty": "hard",
   "task_description": "...",
   "buggy_code": "def binary_search(arr, target):\n    ...",
-  "error_hint": "Hint: There are multiple algorithmic bugs to fix.",
+  "error_hint": "Hint: There are 4 bugs — check ...",
   "step_count": 1
 }
 ```
 
-### Example action
-
+### Action
 ```json
 {
   "fixed_code": "def binary_search(arr, target):\n    ..."
 }
 ```
 
-## Run Locally
+---
+
+## API Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Health check |
+| `GET` | `/health` | Health check |
+| `GET` | `/tasks` | List all tasks |
+| `POST` | `/reset` | Start episode (optional: `{"task_id": "..."}`) |
+| `POST` | `/step` | Submit fix `{"fixed_code": "..."}` |
+| `GET` | `/state` | Current episode state |
+
+---
+
+## Local Setup
 
 ```bash
-python3 -m pip install -r requirements.txt
-python3 -m uvicorn main:app --host 0.0.0.0 --port 7860 --reload
+# Clone
+git clone https://github.com/YOUR_USERNAME/pypatch
+cd pypatch
+
+# Install
+pip install -r requirements.txt
+
+# Run server
+uvicorn main:app --host 0.0.0.0 --port 7860
+
+# In another terminal — run inference
+export API_BASE_URL=https://api.openai.com/v1
+export MODEL_NAME=gpt-4o-mini
+export HF_TOKEN=your_api_key
+export ENV_URL=http://localhost:7860
+python inference.py
 ```
-
-Open:
-
-- `http://127.0.0.1:7860`
-- `http://127.0.0.1:7860/docs`
-
-## Validate
-
-With the server already running:
-
-```bash
-python3 validate.py
-```
-
-Or let the validator start the server:
-
-```bash
-python3 validate.py --start-server
-```
-
-## Inference Script
-
-`inference.py` is included for model-driven interaction with the environment.
-
-Typical environment variables:
-
-| Variable | Description |
-| --- | --- |
-| `API_BASE_URL` | Model API base URL |
-| `MODEL_NAME` | Model identifier |
-| `HF_TOKEN` | API key or token |
-| `ENV_URL` | PyPatch server URL, usually `http://localhost:7860` |
 
 ## Docker
 
@@ -110,17 +109,23 @@ docker build -t pypatch .
 docker run -p 7860:7860 pypatch
 ```
 
-## Project Files
+---
 
-- `main.py` - FastAPI app and endpoints
-- `tasks.py` - task definitions and grading logic
-- `models.py` - request and response schemas
-- `validate.py` - local validation suite
-- `inference.py` - sample agent runner
-- `openenv.yaml` - environment manifest
+## Reward Design
 
-## Notes
+Partial credit is intentional. If an agent fixes the syntax error in Task 3 but misses two algorithmic bugs, it might pass 4/7 test cases and receive reward 0.57. This dense feedback signal makes PyPatch suitable for RL training, not just one-shot evaluation.
 
-- The browser should use `127.0.0.1` or `localhost`, not `0.0.0.0`
-- Reward is proportional to hidden tests passed, so partial fixes earn partial credit
-- The app supports hot reload during development with `--reload`
+---
+
+## Required Environment Variables (inference)
+
+| Variable | Description |
+|---|---|
+| `API_BASE_URL` | LLM API endpoint |
+| `MODEL_NAME` | Model identifier |
+| `HF_TOKEN` | API key |
+| `ENV_URL` | PyPatch server URL |
+
+---
+
+*Built for OpenEnv Round 1 — April 2026*
