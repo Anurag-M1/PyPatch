@@ -23,10 +23,13 @@ from openai import OpenAI
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-API_BASE_URL: str = os.environ.get("API_BASE_URL", "https://api.openai.com/v1")
-MODEL_NAME: str = os.environ.get("MODEL_NAME", "gpt-4o-mini")
-API_KEY: str = os.environ.get("HF_TOKEN", "your-api-key-here")
+API_BASE_URL: str = os.environ.get("API_BASE_URL", "https://api.groq.com/openai/v1")
+MODEL_NAME: str = os.environ.get("MODEL_NAME", "llama-3.1-8b-instant")
+HF_TOKEN: Optional[str] = os.environ.get("HF_TOKEN")
+LOCAL_IMAGE_NAME: Optional[str] = os.environ.get("LOCAL_IMAGE_NAME")
 ENV_URL: str = os.environ.get("ENV_URL", "http://localhost:7860")
+
+API_KEY: str = HF_TOKEN or ""
 
 BENCHMARK = "bugfixbench"
 MAX_STEPS = 5
@@ -164,7 +167,7 @@ def get_fixed_code(
 
 
 def main() -> None:
-    llm = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    llm = OpenAI(base_url=API_BASE_URL, api_key=API_KEY or "none")
     http = httpx.Client()
 
     all_rewards: List[float] = []
