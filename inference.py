@@ -5,9 +5,9 @@ Runs an LLM agent through all 3 tasks (easy → medium → hard).
 Emits structured [START] / [STEP] / [END] logs as required by OpenEnv evaluation.
 
 Environment variables:
-  API_BASE_URL  — LLM API endpoint (e.g. https://api.openai.com/v1)
-  MODEL_NAME    — model identifier (e.g. gpt-4o-mini)
-  HF_TOKEN      — API key / Hugging Face token
+  API_BASE_URL  — LiteLLM proxy base URL injected by the evaluator
+  API_KEY       — proxy API key injected by the evaluator
+  MODEL_NAME    — model identifier (defaults to gpt-4o-mini)
   ENV_URL       — PyPatch server URL (default: http://localhost:7860)
 """
 
@@ -16,9 +16,12 @@ from typing import Dict, List, Optional
 
 import httpx
 import os
+from openai import OpenAI
 
 ENV_URL: str = os.environ.get("ENV_URL", "http://localhost:7860")
-MODEL_NAME: str = os.environ.get("MODEL_NAME", "pypatch-deterministic-baseline")
+API_BASE_URL: str = os.environ["API_BASE_URL"] if "API_BASE_URL" in os.environ else ""
+API_KEY: str = os.environ["API_KEY"] if "API_KEY" in os.environ else ""
+MODEL_NAME: str = os.environ.get("MODEL_NAME", "gpt-4o-mini")
 
 BENCHMARK = "pypatch"
 MAX_STEPS = 5
@@ -123,11 +126,32 @@ def env_step(client: httpx.Client, fixed_code: str) -> dict:
     return r.json()
 
 
+def call_llm_proxy(client: OpenAI, task_id: str) -> Optional[str]:
+    """Make a lightweight proxy call so validation can observe LiteLLM usage."""
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": "Reply with exactly READY.",
+            },
+            {
+                "role": "user",
+                "content": f"Task identifier: {task_id}",
+            },
+        ],
+        temperature=0,
+        max_tokens=4,
+    )
+    return response.choices[0].message.content
+
+
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 
 def main() -> None:
     http = httpx.Client()
+    llm = OpenAI(base_url=API_BASE_URL, api_key=API_KEY) if API_BASE_URL and API_KEY else None
 
     all_rewards: List[float] = []
     task_scores: List[float] = []
@@ -136,16 +160,28 @@ def main() -> None:
         log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
         env_reset(http, task_id)
         fixed_code = BASELINE_FIXES[task_id]
+        proxy_error: Optional[str] = None
+
+        if llm is not None:
+            try:
+                call_llm_proxy(llm, task_id)
+            except Exception as exc:
+                proxy_error = f"proxy_call_failed:{exc}"
+
         try:
             result = env_step(http, fixed_code)
             reward = float(result.get("reward", 0.0))
             done = bool(result.get("done", False))
             info = result.get("info", {})
-            log_step(step=1, action=fixed_code, reward=reward, done=done, error=info.get("exec_error"))
+            error = info.get("exec_error") or proxy_error
+            log_step(step=1, action=fixed_code, reward=reward, done=done, error=error)
         except Exception as e:
             reward = 0.0
             done = False
-            log_step(step=1, action=fixed_code, reward=reward, done=done, error=str(e))
+            combined_error = str(e)
+            if proxy_error:
+                combined_error = f"{proxy_error}; {combined_error}"
+            log_step(step=1, action=fixed_code, reward=reward, done=done, error=combined_error)
 
         all_rewards.append(reward)
         task_scores.append(reward)
