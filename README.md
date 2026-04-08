@@ -4,6 +4,8 @@ PyPatch is a FastAPI-based reinforcement learning environment where agents repai
 
 Built by Anurag Singh.
 
+<img width="1895" height="985" alt="Screenshot 2026-04-08 at 5 38 53 PM" src="https://github.com/user-attachments/assets/b3fc1097-39f1-4aab-800e-c8ba4d15b856" />
+
 ## Overview
 
 - 3 tasks across `easy`, `medium`, and `hard`
