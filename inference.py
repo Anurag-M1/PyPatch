@@ -11,10 +11,7 @@ Environment variables:
   ENV_URL       — PyPatch server URL (default: http://localhost:7860)
 """
 
-import asyncio
-import json
 import os
-import sys
 import time
 from typing import List, Optional
 
@@ -44,15 +41,17 @@ TASK_IDS = [
 # ─── LOGGING (required format) ────────────────────────────────────────────────
 
 
+def _compact(value: object) -> str:
+    text = str(value)
+    return " ".join(text.split())
+
+
 def log_start(task: str, env: str, model: str) -> None:
-    entry = {
-        "type": "START",
-        "task": task,
-        "env": env,
-        "model": model,
-        "timestamp": time.time(),
-    }
-    print(json.dumps(entry), flush=True)
+    print(
+        f"[START] task={_compact(task)} env={_compact(env)} model={_compact(model)} "
+        f"timestamp={time.time():.3f}",
+        flush=True,
+    )
 
 
 def log_step(
@@ -62,16 +61,13 @@ def log_step(
     done: bool,
     error: Optional[str] = None,
 ) -> None:
-    entry = {
-        "type": "STEP",
-        "step": step,
-        "action": action[:500],  # truncate for log readability
-        "reward": reward,
-        "done": done,
-    }
+    message = (
+        f"[STEP] step={step} reward={reward:.4f} done={str(done).lower()} "
+        f"action={_compact(action[:120])}"
+    )
     if error:
-        entry["error"] = error
-    print(json.dumps(entry), flush=True)
+        message += f" error={_compact(error)}"
+    print(message, flush=True)
 
 
 def log_end(
@@ -80,14 +76,12 @@ def log_end(
     score: float,
     rewards: List[float],
 ) -> None:
-    entry = {
-        "type": "END",
-        "success": success,
-        "steps": steps,
-        "score": score,
-        "rewards": rewards,
-    }
-    print(json.dumps(entry), flush=True)
+    rewards_str = ",".join(f"{reward:.4f}" for reward in rewards)
+    print(
+        f"[END] task=all_tasks success={str(success).lower()} steps={steps} "
+        f"score={score:.4f} rewards={rewards_str}",
+        flush=True,
+    )
 
 
 # ─── ENV CLIENT ───────────────────────────────────────────────────────────────
@@ -177,8 +171,6 @@ def main() -> None:
     log_start(task="all_tasks", env=BENCHMARK, model=MODEL_NAME)
 
     for task_id in TASK_IDS:
-        print(f"[DEBUG] Starting task: {task_id}", flush=True)
-
         result = env_reset(http, task_id)
         obs = result["observation"]
         history: List[str] = []
@@ -231,8 +223,6 @@ def main() -> None:
 
         global_step += attempt  # type: ignore[possibly-undefined]
         task_scores.append(task_best_reward)
-        print(f"[DEBUG] Task {task_id} finished. Best reward: {task_best_reward:.2f}", flush=True)
-
     http.close()
 
     final_score = sum(task_scores) / len(task_scores) if task_scores else 0.0
