@@ -63,9 +63,7 @@ def _make_observation(task: dict, step_count: int) -> PyPatchObservation:
 
 # ─── ENDPOINTS ────────────────────────────────────────────────────────────────
 
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    """Landing page — returns 200 with HTML UI."""
+def _landing_page_html() -> str:
     task_rows = "".join(
         f"""<tr>
           <td><code>{t['id']}</code></td>
@@ -155,10 +153,27 @@ async def root():
   <div class="ep"><span class="method get">GET</span><span class="ep-path">/docs</span><span class="ep-desc">Swagger UI</span></div>
 </div>
 
-<footer>PyPatch · OpenEnv Round 1 · Built by Anurag Kumar Singh</footer>
+<footer>Built by Anurag Singh</footer>
 </body>
 </html>"""
-    return HTMLResponse(content=html, status_code=200)
+    return html
+
+
+@app.get("/")
+async def root():
+    """Machine-readable health endpoint used by validators."""
+    return {
+        "status": "ok",
+        "env": "PyPatch",
+        "version": app.version,
+        "tasks": len(TASKS),
+    }
+
+
+@app.get("/ui", response_class=HTMLResponse)
+async def ui():
+    """Human-friendly landing page."""
+    return HTMLResponse(content=_landing_page_html(), status_code=200)
 
 
 @app.get("/health")

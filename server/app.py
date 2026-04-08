@@ -1,0 +1,9 @@
+"""Deployment entry point for PyPatch."""
+
+import uvicorn
+
+from main import app
+
+
+def main() -> None:
+    uvicorn.run(app, host="0.0.0.0", port=7860)
