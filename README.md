@@ -1,3 +1,12 @@
+---
+title: PyPatch
+emoji: 🐛
+colorFrom: red
+colorTo: orange
+sdk: docker
+pinned: false
+---
+
 # PyPatch
 
 PyPatch is a FastAPI-based reinforcement learning environment where agents repair buggy Python code and receive partial reward based on hidden test-case performance.
