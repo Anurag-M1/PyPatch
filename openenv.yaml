@@ -1,0 +1,105 @@
+name: pypatch
+version: "1.0.0"
+description: >
+  An RL environment where AI agents debug and fix buggy Python code.
+  Three tasks of increasing difficulty test syntax repair, logic correction,
+  and algorithmic bug-fixing. Reward is proportional to the fraction of
+  hidden test cases the fixed code passes (0.0–1.0).
+author: Anurag Kumar Singh
+license: MIT
+
+tasks:
+  - id: task_easy_factorial
+    name: Fix Factorial Function
+    difficulty: easy
+    max_steps: 5
+    score_range: [0.0, 1.0]
+    description: Fix syntax errors in a recursive factorial function.
+
+  - id: task_medium_second_largest
+    name: Fix Second Largest Element
+    difficulty: medium
+    max_steps: 5
+    score_range: [0.0, 1.0]
+    description: Fix the logic error that returns the largest instead of second largest element.
+
+  - id: task_hard_binary_search
+    name: Fix Binary Search Algorithm
+    difficulty: hard
+    max_steps: 5
+    score_range: [0.0, 1.0]
+    description: Fix four distinct algorithmic bugs in a binary search implementation.
+
+observation_space:
+  type: object
+  properties:
+    task_id:
+      type: string
+      description: Unique identifier for the current task
+    task_name:
+      type: string
+      description: Human-readable task name
+    difficulty:
+      type: string
+      enum: [easy, medium, hard]
+    task_description:
+      type: string
+      description: Full description with expected input/output examples
+    buggy_code:
+      type: string
+      description: The Python code containing bugs to be fixed
+    error_hint:
+      type: string
+      description: A hint pointing toward the type of bug(s) present
+    step_count:
+      type: integer
+      description: Number of fix attempts made so far in this episode
+
+action_space:
+  type: object
+  properties:
+    fixed_code:
+      type: string
+      description: The corrected Python code submitted by the agent
+
+reward:
+  type: float
+  range: [0.0, 1.0]
+  description: >
+    Fraction of hidden test cases passed by the submitted fixed code.
+    0.0 = no tests pass (or code fails to execute).
+    1.0 = all tests pass (episode terminates successfully).
+    Partial rewards are given for partially correct fixes.
+
+termination:
+  conditions:
+    - reward == 1.0 (all tests pass)
+    - step_count >= max_steps (5 attempts exhausted)
+
+api:
+  reset:
+    method: POST
+    path: /reset
+    body:
+      task_id: string (optional, defaults to easy task)
+  step:
+    method: POST
+    path: /step
+    body:
+      fixed_code: string
+  state:
+    method: GET
+    path: /state
+  tasks:
+    method: GET
+    path: /tasks
+  health:
+    method: GET
+    path: /health
+
+environment:
+  language: Python
+  framework: FastAPI
+  runtime: Python 3.11
+  max_memory_mb: 512
+  max_inference_runtime_minutes: 20
