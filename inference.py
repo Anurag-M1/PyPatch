@@ -21,6 +21,7 @@ from openai import OpenAI
 ENV_URL: str = os.environ.get("ENV_URL", "http://localhost:7860")
 API_BASE_URL: str = os.environ["API_BASE_URL"] if "API_BASE_URL" in os.environ else ""
 API_KEY: str = os.environ["API_KEY"] if "API_KEY" in os.environ else ""
+HF_TOKEN: str = os.environ.get("HF_TOKEN", "")
 MODEL_NAME: str = os.environ.get("MODEL_NAME", "gpt-4o-mini")
 
 BENCHMARK = "pypatch"

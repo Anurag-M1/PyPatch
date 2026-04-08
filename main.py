@@ -64,13 +64,21 @@ def _make_observation(task: dict, step_count: int) -> PyPatchObservation:
 # ─── ENDPOINTS ────────────────────────────────────────────────────────────────
 
 def _landing_page_html() -> str:
-    task_rows = "".join(
-        f"""<tr>
-          <td><code>{t['id']}</code></td>
-          <td>{t['name']}</td>
-          <td><span class="badge badge-{t['difficulty']}">{t['difficulty']}</span></td>
-          <td>{t['description'].splitlines()[0][:80]}…</td>
-        </tr>"""
+    task_cards = "".join(
+        f"""<div class="task-card">
+          <div class="task-top">
+            <div>
+              <h3>{t['name']}</h3>
+              <p>{t['description'].splitlines()[0]}</p>
+            </div>
+            <span class="badge badge-{t['difficulty']}">{t['difficulty']}</span>
+          </div>
+          <div class="task-meta">
+            <span><strong>ID</strong> <code>{t['id']}</code></span>
+            <span><strong>Baseline</strong> {t['score']:.2f}</span>
+            <span><strong>Grader</strong> <code>{t['grader']}</code></span>
+          </div>
+        </div>"""
         for t in TASKS
     )
     html = f"""<!DOCTYPE html>
@@ -81,24 +89,40 @@ def _landing_page_html() -> str:
 <title>PyPatch 🐛</title>
 <style>
   *{{box-sizing:border-box;margin:0;padding:0}}
-  body{{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;padding:2rem}}
-  .hero{{text-align:center;padding:3rem 1rem 2rem}}
-  .hero h1{{font-size:3rem;font-weight:800;background:linear-gradient(135deg,#f97316,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
-  .hero p{{color:#94a3b8;font-size:1.1rem;margin-top:.75rem}}
+  body{{font-family:'Segoe UI',system-ui,sans-serif;background:radial-gradient(circle at top,#1a2238 0,#0f1117 45%);color:#e2e8f0;min-height:100vh;padding:2rem;line-height:1.55}}
+  a{{color:#7dd3fc;text-decoration:none}}
+  a:hover{{text-decoration:underline}}
+  .shell{{max-width:1120px;margin:0 auto}}
+  .hero{{text-align:center;padding:3.5rem 1rem 2rem}}
+  .hero h1{{font-size:3.4rem;font-weight:800;background:linear-gradient(135deg,#fb923c,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+  .hero p{{color:#94a3b8;font-size:1.1rem;margin-top:.75rem;max-width:780px;margin-left:auto;margin-right:auto}}
+  .hero-actions{{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;margin-top:1.4rem}}
+  .btn{{display:inline-flex;align-items:center;justify-content:center;padding:.8rem 1.1rem;border-radius:10px;font-weight:600;border:1px solid #334155;background:#111827;color:#f8fafc}}
+  .btn-primary{{background:linear-gradient(135deg,#f97316,#ef4444);border:none}}
   .badge{{padding:.2rem .6rem;border-radius:999px;font-size:.75rem;font-weight:600;text-transform:uppercase}}
   .badge-easy{{background:#166534;color:#86efac}}
   .badge-medium{{background:#92400e;color:#fde68a}}
   .badge-hard{{background:#7f1d1d;color:#fca5a5}}
-  .grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;max-width:900px;margin:2rem auto}}
-  .card{{background:#1e2330;border:1px solid #2d3748;border-radius:12px;padding:1.5rem}}
+  .grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;max-width:1120px;margin:2rem auto}}
+  .card,.panel,.task-card{{background:rgba(30,35,48,.88);border:1px solid #2d3748;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.22)}}
+  .card{{padding:1.5rem}}
   .card h3{{font-size:.8rem;text-transform:uppercase;color:#64748b;letter-spacing:.1em;margin-bottom:.5rem}}
   .card p{{font-size:1.8rem;font-weight:700;color:#f1f5f9}}
   .card small{{font-size:.85rem;color:#64748b}}
-  table{{width:100%;max-width:900px;margin:1.5rem auto;border-collapse:collapse;background:#1e2330;border-radius:12px;overflow:hidden}}
-  th{{background:#2d3748;padding:.75rem 1rem;text-align:left;font-size:.8rem;text-transform:uppercase;color:#94a3b8;letter-spacing:.05em}}
-  td{{padding:.75rem 1rem;border-top:1px solid #2d3748;font-size:.875rem;color:#cbd5e1}}
-  td code{{background:#0f1117;padding:.15rem .4rem;border-radius:4px;font-size:.8rem;color:#f97316}}
-  .endpoints{{max-width:900px;margin:2rem auto}}
+  .section{{max-width:1120px;margin:2.3rem auto}}
+  .section h2{{color:#f8fafc;font-size:1.45rem;margin-bottom:.35rem}}
+  .section p.lead{{color:#94a3b8;margin-bottom:1rem}}
+  .split{{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem}}
+  .panel{{padding:1.25rem}}
+  .task-list{{display:grid;gap:1rem}}
+  .task-card{{padding:1.2rem}}
+  .task-top{{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}}
+  .task-card h3{{font-size:1.05rem;margin-bottom:.35rem}}
+  .task-card p{{color:#94a3b8;font-size:.95rem}}
+  .task-meta{{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;color:#cbd5e1;font-size:.88rem}}
+  code{{background:#0f1117;padding:.15rem .4rem;border-radius:4px;font-size:.82rem;color:#f97316}}
+  pre{{background:#0b1220;border:1px solid #22304a;border-radius:12px;padding:1rem;overflow:auto;color:#cbd5e1;font-size:.88rem}}
+  .endpoints{{max-width:1120px;margin:2rem auto}}
   .endpoints h2{{color:#94a3b8;font-size:.9rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem}}
   .ep{{display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;background:#1e2330;border-radius:8px;margin-bottom:.5rem;border:1px solid #2d3748}}
   .method{{font-size:.75rem;font-weight:700;padding:.2rem .5rem;border-radius:4px;min-width:3.5rem;text-align:center}}
@@ -109,15 +133,24 @@ def _landing_page_html() -> str:
   .status-pill{{display:inline-flex;align-items:center;gap:.4rem;background:#14532d;border:1px solid #166534;color:#86efac;padding:.3rem .8rem;border-radius:999px;font-size:.8rem;font-weight:600}}
   .dot{{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:pulse 2s infinite}}
   @keyframes pulse{{0%,100%{{opacity:1}}50%{{opacity:.4}}}}
+  .list{{display:grid;gap:.7rem;color:#cbd5e1}}
+  .list div{{padding:.75rem .9rem;background:#111827;border:1px solid #243244;border-radius:10px}}
   footer{{text-align:center;color:#475569;font-size:.8rem;margin-top:3rem}}
+  @media (max-width: 840px){{.split{{grid-template-columns:1fr}} .hero h1{{font-size:2.6rem}}}}
 </style>
 </head>
 <body>
+<div class="shell">
 <div class="hero">
   <h1>🐛 PyPatch</h1>
-  <p>OpenEnv RL environment — AI agents debug &amp; fix Python code</p>
+  <p>PyPatch is a judge-friendly RL environment where agents repair buggy Python programs across escalating difficulty levels and receive dense, test-driven reward signals.</p>
   <br/>
   <span class="status-pill"><span class="dot"></span>Live · v1.0.0</span>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="/docs">Open API Docs</a>
+    <a class="btn" href="/tasks">View Task Metadata</a>
+    <a class="btn" href="https://github.com/Anurag-M1/PyPatch">GitHub Repo</a>
+  </div>
 </div>
 
 <div class="grid">
@@ -136,15 +169,69 @@ def _landing_page_html() -> str:
     <p>0–1</p>
     <small>fraction of tests passed</small>
   </div>
+  <div class="card">
+    <h3>Baseline</h3>
+    <p>0.67</p>
+    <small>deterministic average score</small>
+  </div>
 </div>
 
-<table>
-  <thead><tr><th>Task ID</th><th>Name</th><th>Difficulty</th><th>Description</th></tr></thead>
-  <tbody>{task_rows}</tbody>
-</table>
+<div class="section">
+  <h2>Why This Stands Out</h2>
+  <p class="lead">Designed for fast evaluation, dense feedback, and clear progression from syntax repair to algorithmic reasoning.</p>
+  <div class="split">
+    <div class="panel">
+      <div class="list">
+        <div><strong>Dense reward shaping</strong><br/>Agents receive partial credit instead of only pass/fail outcomes.</div>
+        <div><strong>Progressive difficulty</strong><br/>Easy, medium, and hard tasks cover syntax, logic, and algorithmic bug fixing.</div>
+        <div><strong>Deterministic grading</strong><br/>Each task uses explicit hidden test cases and reproducible scoring.</div>
+        <div><strong>Submission-safe baseline</strong><br/>Baseline inference uses the evaluator proxy and emits structured logs.</div>
+      </div>
+    </div>
+    <div class="panel">
+<pre>GET  /        # machine-readable health
+GET  /ui     # judge-facing landing page
+GET  /tasks  # task metadata + grader + score
+POST /reset  # start a task episode
+POST /step   # submit fixed code
+GET  /state  # inspect current episode</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Tasks</h2>
+  <p class="lead">Three curated debugging challenges with deterministic graders and non-trivial hidden tests.</p>
+  <div class="task-list">{task_cards}</div>
+</div>
+
+<div class="section">
+  <h2>Judge Demo Flow</h2>
+  <p class="lead">A reviewer can understand the project in under two minutes.</p>
+  <div class="split">
+    <div class="panel">
+<pre>1. Open /ui
+2. Inspect /tasks for difficulty + grader metadata
+3. POST /reset with a task_id
+4. POST /step with corrected Python code
+5. Observe reward and test breakdown
+6. Run inference.py for baseline logs</pre>
+    </div>
+    <div class="panel">
+<pre>curl -X POST http://localhost:7860/reset \\
+  -H "Content-Type: application/json" \\
+  -d '{{"task_id":"task_medium_second_largest"}}'
+
+curl -X POST http://localhost:7860/step \\
+  -H "Content-Type: application/json" \\
+  -d '{{"fixed_code":"def second_largest(lst):\\n    unique = sorted(set(lst))\\n    return unique[-2]"}}'</pre>
+    </div>
+  </div>
+</div>
 
 <div class="endpoints">
   <h2>API Endpoints</h2>
+  <div class="ep"><span class="method get">GET</span><span class="ep-path">/ui</span><span class="ep-desc">Judge-facing landing page</span></div>
   <div class="ep"><span class="method get">GET</span><span class="ep-path">/health</span><span class="ep-desc">Health check</span></div>
   <div class="ep"><span class="method get">GET</span><span class="ep-path">/tasks</span><span class="ep-desc">List all tasks</span></div>
   <div class="ep"><span class="method post">POST</span><span class="ep-path">/reset</span><span class="ep-desc">Start episode · body: {{"task_id": "..."}}</span></div>
@@ -154,6 +241,7 @@ def _landing_page_html() -> str:
 </div>
 
 <footer>Built by Anurag Singh</footer>
+</div>
 </body>
 </html>"""
     return html
